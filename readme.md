@@ -30,10 +30,11 @@ lost-found-portal/
 ├── update_claim.php      # Update claim status (admin)
 └── README.md             # Project documentation
 
-Create the Database:
+## Create the Database:
 Open phpMyAdmin or your MySQL client.
 Create a database named lost_found_db.
-Create the following tables (example SQL):
+
+## Create the following tables (example SQL):
 
 CREATE TABLE lost_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -69,22 +70,23 @@ CREATE TABLE claims (
     FOREIGN KEY (item_id) REFERENCES lost_found_items(id)
 );
 
-Usage
+## Usage
 Home: Navigate to report, claim, or admin login.
 Admin Login: Use credentials harini/harini0719 (update in admin_login.php for production).
 Uploads: Ensure the uploads/ folder exists and is writable for image uploads.
 
-Database Schema
+## Database Schema
 lost_items: Stores lost item reports.
 lost_found_items: Stores found item reports.
 claims: Tracks claims on found items with status (Pending, Approved, Rejected).
 Screenshots
-(Add screenshots here by uploading images to your repo and linking them, e.g.,)
+(Add screenshots here by uploading images to your repo and linking them)
 
 Home Page: ![Home](screenshots/home.png)
 Report Form: ![Report](screenshots/report.png)
 Admin Panel: ![Admin](screenshots/admin.png)
-Contributing
+
+## Contributing
 Fork the repository.
 Create a new branch (git checkout -b feature-branch).
 Commit your changes (git commit -m "Add feature").
