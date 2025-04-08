@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Lost & Found</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #2b0d0d 0%, #3d1a1a 100%);
+            color: #ffe0e0;
+            font-family: 'Orbitron', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Loader Styles */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #2b0d0d 0%, #3d1a1a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10000;
+            opacity: 1;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .logo-img {
+            width: 150px;
+            height: auto;
+            opacity: 0;
+            animation: logoFadeIn 1.5s ease forwards;
+        }
+
+        .logo-text {
+            font-size: 2.5em;
+            margin-top: 20px;
+            opacity: 0;
+            letter-spacing: 5px;
+            animation: textSlideIn 1.5s ease forwards 0.5s;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+        }
+
+        .logo-subtext {
+            font-size: 1em;
+            opacity: 0;
+            animation: textSlideIn 1.5s ease forwards 0.7s;
+        }
+
+        @keyframes logoFadeIn {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes textSlideIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Glowing cursor effect */
+        .cursor-glow {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 0, 0, 0.3) 0%, rgba(255, 0, 0, 0) 70%);
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.1s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 15px 30px;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 0, 0, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: #ffe0e0;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+            animation: neonPulse 2s infinite;
+            text-decoration: none;
+        }
+
+        .navbar-links {
+            display: flex;
+        }
+
+        .navbar-links a {
+            color: #ffe0e0;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 1em;
+            letter-spacing: 1px;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-links a:hover {
+            color: #ff0000;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+
+        .navbar-links a.active {
+            color: #ff0000;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+
+        .navbar-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 1px;
+            bottom: -5px;
+            left: 0;
+            background-color: #ff0000;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-links a:hover::after {
+            width: 100%;
+            box-shadow: 0 0 5px #ff0000;
+        }
+
+        /* Main Content */
+        .content {
+            padding: 100px 20px 40px;
+            z-index: 10;
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.7);
+            animation: neonPulse 2s infinite;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 0, 0, 0.2);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 40px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+            position: relative;
+            display: inline-block;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background: linear-gradient(90deg, #ff0000, transparent);
+            box-shadow: 0 0 5 verkar: rgba(255, 0, 0, 0.5);
+        }
+
+        /* Table Styles */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ffe0e0;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9em;
+            letter-spacing: 1px;
+            padding: 15px;
+            text-align: left;
+            position: relative;
+        }
+
+        th::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, #ff0000, transparent);
+        }
+
+        td {
+            padding: 15px;
+            font-size: 0.9em;
+            border-bottom: 1px solid rgba(255, 0, 0, 0.1);
+            transition: background 0.3s ease;
+        }
+
+        tr:hover td {
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        img {
+            max-width: 80px;
+            max-height: 80px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        img:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.5);
+        }
+
+        /* Button Styles */
+        .btn {
+            background: linear-gradient(45deg, #ff0000, #ff5500);
+            border: none;
+            padding: 10px 15px;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 25px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8em;
+            font-weight: bold;
+            letter-spacing: 1px;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin: 3px;
+            min-width: 90px;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.8);
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: rotate(30deg);
+            transition: all 0.5s;
+        }
+
+        .btn:hover::after {
+            left: 100%;
+        }
+
+        .btn-approve {
+            background: linear-gradient(45deg, #00b300, #00ff00);
+        }
+
+        .btn-reject {
+            background: linear-gradient(45deg, #ff0000, #cc0000);
+        }
+
+        /* Animations */
+        @keyframes neonPulse {
+            0%, 100% { text-shadow: 0 0 10px rgba(255, 0, 0, 0.7); }
+            50% { text-shadow: 0 0 20px rgba(255, 0, 0, 1); }
+        }
+
+        /* Particles background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Status indicators */
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-pending {
+            background: rgba(255, 165, 0, 0.2);
+            color: #ffcc00;
+            border: 1px solid rgba(255, 165, 0, 0.5);
+            box-shadow: 0 0 5px rgba(255, 165, 0, 0.3);
+        }
+
+        .status-approved {
+            background: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+        }
+
+        .status-rejected {
+            background: rgba(255, 0, 0, 0.2);
+            color: #ff6666;
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader with Logo Animation -->
+    <div class="loader" id="loader">
+        <div class="logo-container">
+            <img src="nmims-logo.png" alt="SVKM's NMIMS Logo" class="logo-img">
+            <div class="logo-text">SVKM's NMIMS</div>
+            <div class="logo-subtext">Deemed to be UNIVERSITY</div>
+        </div>
+    </div>
+
+    <div class="cursor-glow" id="cursorGlow"></div>
+    <canvas class="particles" id="particles"></canvas>
+
+    <nav class="navbar">
+        <a href="#" class="navbar-brand">Lost & Found</a>
+        <div class="navbar-links">
+            <a href="#section1" id="lostItemsLink">Lost Items</a>
+            <a href="#section2" id="foundItemsLink">Found Items</a>
+            <a href="#section3" id="claimsLink">Claims</a>
+        </div>
+    </nav>
+    
+    <div class="content" id="mainContent">
+        <h1 class="page-title">Admin Panel</h1>
+        
+        <div class="section" id="section1">
+            <h2 class="section-title">Lost Items</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Image</th>
+                            <th>Location</th>
+                            <th>Reported By</th>
+                            <th>Contact</th>
+                            <th>Reported Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="lostItemsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="section2">
+            <h2 class="section-title">Found Items</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Image</th>
+                            <th>Found Location</th>
+                            <th>Found By</th>
+                            <th>Contact</th>
+                            <th>Reported Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="foundItemsTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" id="section3">
+            <h2 class="section-title">Claims</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Item Name</th>
+                            <th>Claimant</th>
+                            <th>Contact</th>
+                            <th>Reason</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="claimsTable"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Loader Animation Timeout
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('mainContent').classList.add('visible');
+                
+                const sections = document.querySelectorAll('.section');
+                sections.forEach((section, index) => {
+                    setTimeout(() => {
+                        section.classList.add('visible');
+                    }, 300 * (index + 1));
+                });
+            }, 3000);
+        });
+
+        // Cursor glow effect
+        const cursorGlow = document.getElementById('cursorGlow');
+        document.addEventListener('mousemove', (e) => {
+            cursorGlow.style.left = e.pageX + 'px';
+            cursorGlow.style.top = e.pageY + 'px';
+        });
+
+        // Particles background
+        const canvas = document.getElementById('particles');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particlesArray = [];
+        const numberOfParticles = 100;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 1;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.size > 0.2) this.size -= 0.01;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+                if (particlesArray[i].size <= 0.2) {
+                    particlesArray.splice(i, 1);
+                    i--;
+                    particlesArray.push(new Particle());
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+
+        init();
+        animate();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Fetch data for tables
+        function fetchData() {
+            fetch('admin.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        return;
+                    }
+
+                    let lostHTML = '';
+                    data.lost_items.forEach(item => {
+                        lostHTML += `
+                            <tr>
+                                <td>${item.id}</td>
+                                <td>${item.name}</td>
+                                <td>${item.category}</td>
+                                <td>${item.description}</td>
+                                <td><img src="${item.image_path}" alt="Item Image"></td>
+                                <td>${item.location}</td>
+                                <td>${item.reported_by}</td>
+                                <td>${item.contact}</td>
+                                <td>${item.reported_date}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('lostItemsTable').innerHTML = lostHTML;
+
+                    let foundHTML = '';
+                    data.found_items.forEach(item => {
+                        foundHTML += `
+                            <tr>
+                                <td>${item.id}</td>
+                                <td>${item.name}</td>
+                                <td>${item.category}</td>
+                                <td>${item.description}</td>
+                                <td><img src="${item.image_path}" alt="Item Image"></td>
+                                <td>${item.found_location}</td>
+                                <td>${item.found_by}</td>
+                                <td>${item.contact}</td>
+                                <td>${item.reported_date}</td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('foundItemsTable').innerHTML = foundHTML;
+
+                    let claimsHTML = '';
+                    data.claims.forEach(claim => {
+                        let statusClass = '';
+                        switch(claim.status.toLowerCase()) {
+                            case 'pending':
+                                statusClass = 'status-pending';
+                                break;
+                            case 'approved':
+                                statusClass = 'status-approved';
+                                break;
+                            case 'rejected':
+                                statusClass = 'status-rejected';
+                                break;
+                            default:
+                                statusClass = 'status-pending';
+                        }
+                        
+                        claimsHTML += `
+                            <tr>
+                                <td>${claim.id}</td>
+                                <td>${claim.item_name}</td>
+                                <td>${claim.user_name}</td>
+                                <td>${claim.contact}</td>
+                                <td>${claim.claim_reason}</td>
+                                <td><span id="status-${claim.id}" class="status ${statusClass}">${claim.status}</span></td>
+                                <td>
+                                    <button class="btn btn-approve" onclick="updateClaim(${claim.id}, 'Approved')">Approve</button>
+                                    <button class="btn btn-reject" onclick="updateClaim(${claim.id}, 'Rejected')">Reject</button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    document.getElementById('claimsTable').innerHTML = claimsHTML;
+                })
+                .catch(error => console.error("Error fetching data:", error));
+        }
+
+        function updateClaim(claimId, status) {
+            fetch('update_claim.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `claim_id=${claimId}&status=${status}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const statusElement = document.getElementById(`status-${claimId}`);
+                    statusElement.textContent = status;
+                    
+                    statusElement.classList.remove('status-pending', 'status-approved', 'status-rejected');
+                    
+                    if (status.toLowerCase() === 'approved') {
+                        statusElement.classList.add('status-approved');
+                    } else if (status.toLowerCase() === 'rejected') {
+                        statusElement.classList.add('status-rejected');
+                    } else {
+                        statusElement.classList.add('status-pending');
+                    }
+                } else {
+                    alert("Error updating claim");
+                }
+            })
+            .catch(error => console.error("Error updating claim:", error));
+        }
+
+        // Navigation scroll functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.navbar-links a');
+            const sections = document.querySelectorAll('.section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    link.classList.add('active');
+
+                    const targetId = link.getAttribute('href');
+                    const targetSection = document.querySelector(targetId);
+                    
+                    if (targetSection) {
+                        const navbarHeight = document.querySelector('.navbar').offsetHeight;
+                        const targetPosition = targetSection.getBoundingClientRect().top + window.pageYOffset - navbarHeight - 20;
+                        
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            window.addEventListener('scroll', () => {
+                let current = '';
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - 100;
+                    if (window.pageYOffset >= sectionTop) {
+                        current = section.getAttribute('id');
+                    }
+                });
+
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${current}`) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Fetch data on page load
+        fetchData();
+    </script>
+</body>
+</html>
