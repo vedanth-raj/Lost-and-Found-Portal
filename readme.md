@@ -29,64 +29,27 @@ lost-found-portal/
 ├── submit_claim.php      # Handle claim submissions
 ├── update_claim.php      # Update claim status (admin)
 └── README.md             # Project documentation
+## Setup
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/yourusername/lost-found-portal.git
 
-## Create the Database:
-Open phpMyAdmin or your MySQL client.
-Create a database named lost_found_db.
-
-## Create the following tables (example SQL):
-
-CREATE TABLE lost_items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    category VARCHAR(100),
-    description TEXT,
-    image_path VARCHAR(255),
-    location VARCHAR(255),
-    reported_by VARCHAR(100),
-    contact VARCHAR(100),
-    reported_date DATETIME
-);
-
-CREATE TABLE lost_found_items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    category VARCHAR(100),
-    description TEXT,
-    image_path VARCHAR(255),
-    found_location VARCHAR(255),
-    found_by VARCHAR(100),
-    contact VARCHAR(100),
-    reported_date DATETIME
-);
-
-CREATE TABLE claims (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    item_id INT,
-    user_name VARCHAR(100),
-    contact VARCHAR(100),
-    claim_reason TEXT,
-    status VARCHAR(50) DEFAULT 'Pending',
-    FOREIGN KEY (item_id) REFERENCES lost_found_items(id)
-);
-
-## Usage
+Usage
 Home: Navigate to report, claim, or admin login.
 Admin Login: Use credentials harini/harini0719 (update in admin_login.php for production).
 Uploads: Ensure the uploads/ folder exists and is writable for image uploads.
 
-## Database Schema
+Database Schema
 lost_items: Stores lost item reports.
 lost_found_items: Stores found item reports.
 claims: Tracks claims on found items with status (Pending, Approved, Rejected).
 Screenshots
-(Add screenshots here by uploading images to your repo and linking them)
+(Add screenshots here by uploading images to your repo and linking them, e.g.,)
 
 Home Page: ![Home](screenshots/home.png)
 Report Form: ![Report](screenshots/report.png)
 Admin Panel: ![Admin](screenshots/admin.png)
-
-## Contributing
+Contributing
 Fork the repository.
 Create a new branch (git checkout -b feature-branch).
 Commit your changes (git commit -m "Add feature").
